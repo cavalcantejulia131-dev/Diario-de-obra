@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OBRA — Gestão</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;600;700&family=Barlow+Condensed:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0D0D0D;--bg2:#141414;--bg3:#1A1A1A;--border:#252525;--border2:#303030;--laranja:#F55A00;--laranja2:#FF7A2F;--amarelo:#F5C400;--verde:#2ECC71;--vermelho:#E74C3C;--azul:#3498DB;--branco:#F0EBE1;--branco2:#A8A29E;--branco3:#6B6560;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--branco);font-family:'Barlow Condensed',sans-serif;display:flex;flex-direction:column;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;min-height:52px;border-bottom:1px solid var(--border);background:var(--bg2);z-index:50;}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:4px;}.topbar-logo span{color:var(--laranja);}
+.topbar-date{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--branco3);letter-spacing:1px;}
+.btn-sm{font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border:1px solid var(--border2);background:transparent;color:var(--branco2);cursor:pointer;transition:all .15s;}
+.btn-sm:hover{border-color:var(--laranja);color:var(--laranja);}
+.btn-sm.primary{background:var(--laranja);border-color:var(--laranja);color:#000;}.btn-sm.primary:hover{background:var(--laranja2);}
+.btn-sm.danger{color:var(--vermelho);border-color:var(--vermelho);}
+#app{display:flex;flex:1;overflow:hidden;}
+#sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar-section{padding:12px 0;border-bottom:1px solid var(--border);}
+.sidebar-label{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:3px;color:var(--branco3);text-transform:uppercase;padding:0 16px 8px;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;transition:background .15s;font-size:.9rem;font-weight:600;color:var(--branco2);letter-spacing:.5px;border-left:2px solid transparent;}
+.sidebar-item:hover{background:var(--bg3);color:var(--branco);}.sidebar-item.active{background:rgba(245,90,0,.1);color:var(--laranja);border-left-color:var(--laranja);}
+.sidebar-item .icon{font-size:.9rem;width:18px;text-align:center;}
+.obra-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:.55rem;background:var(--border);padding:2px 6px;color:var(--branco3);border-radius:2px;}
+.obra-badge.alert{background:rgba(245,90,0,.2);color:var(--laranja);}
+#main{flex:1;overflow-y:auto;background:var(--bg);}
+.view{display:none;padding:24px;}.view.active{display:block;}
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;line-height:1;}
+.page-title small{display:block;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--laranja);letter-spacing:3px;margin-bottom:4px;font-weight:400;}
+.page-actions{display:flex;gap:8px;align-items:center;}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px;}
+.obra-card{background:var(--bg2);border:1px solid var(--border);padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.obra-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--laranja);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.obra-card:hover{border-color:var(--border2);background:var(--bg3);}.obra-card:hover::before{transform:scaleX(1);}
+.obra-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.obra-card-nome{font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;line-height:1.2;}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.status-dot.ativa{background:var(--verde);box-shadow:0 0 6px var(--verde);}.status-dot.pausada{background:var(--amarelo);}.status-dot.concluida{background:var(--branco3);}
+.obra-meta{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);letter-spacing:1px;margin-bottom:14px;}
+.progress-wrap{margin-bottom:8px;}
+.progress-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);margin-bottom:4px;}
+.progress-label strong{color:var(--laranja);}
+.progress-track{height:3px;background:var(--border);border-radius:1px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:1px;background:linear-gradient(90deg,var(--laranja),var(--amarelo));}
+.obra-footer{display:flex;gap:16px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.obra-stat{font-family:'JetBrains Mono',monospace;font-size:.58rem;}
+.obra-stat-val{color:var(--branco);font-weight:700;font-size:.7rem;display:block;}
+.obra-stat-key{color:var(--branco3);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-box{background:var(--bg2);border:1px solid var(--border);padding:16px 20px;}
+.stat-box-val{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--laranja);letter-spacing:2px;line-height:1;}
+.stat-box-key{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+.detail-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto;}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;padding:10px 18px;background:transparent;border:none;color:var(--branco3);cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+.tab-btn:hover{color:var(--branco);}.tab-btn.active{color:var(--laranja);border-bottom-color:var(--laranja);}
+.tab-content{display:none;}.tab-content.active{display:block;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--laranja);letter-spacing:2px;text-transform:uppercase;}
+.field input,.field select,.field textarea{background:var(--bg3);border:1px solid var(--border2);color:var(--branco);font-family:'Barlow Condensed',sans-serif;font-size:.95rem;padding:8px 12px;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--laranja);}
+.field textarea{resize:vertical;min-height:70px;}
+.field select option{background:var(--bg3);}
+.check-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .15s;font-size:.85rem;font-weight:600;user-select:none;}
+.check-item:hover{border-color:var(--border2);}
+.check-item.ok{border-color:var(--verde);background:rgba(46,204,113,.08);color:var(--verde);}
+.check-item.nok{border-color:var(--vermelho);background:rgba(231,76,60,.08);color:var(--vermelho);}
+.check-box{width:16px;height:16px;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;border-radius:2px;}
+.check-item.ok .check-box{background:var(--verde);border-color:var(--verde);color:#000;}
+.check-item.nok .check-box{background:var(--vermelho);border-color:var(--vermelho);color:#fff;}
+.fotos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px;}
+.foto-thumb{position:relative;aspect-ratio:1;background:var(--bg3);border:1px solid var(--border);overflow:hidden;}
+.foto-thumb img{width:100%;height:100%;object-fit:cover;cursor:pointer;}
+.foto-leg-input{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);padding:4px 6px;}
+.foto-leg-input input{background:transparent;border:none;color:var(--branco2);font-family:'JetBrains Mono',monospace;font-size:.6rem;width:100%;outline:none;}
+.foto-del{position:absolute;top:4px;right:4px;background:rgba(231,76,60,.85);color:#fff;border:none;font-size:.65rem;padding:2px 6px;cursor:pointer;display:none;border-radius:2px;}
+.foto-thumb:hover .foto-del{display:block;}
+.foto-add-box{aspect-ratio:1;background:var(--bg3);border:2px dashed var(--border2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s;gap:6px;}
+.foto-add-box:hover{border-color:var(--laranja);}
+.foto-add-box span{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);}
+.entry-card{background:var(--bg2);border:1px solid var(--border);margin-bottom:12px;}
+.entry-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;}
+.entry-header:hover{background:rgba(255,255,255,.02);}
+.entry-body{display:none;padding:20px;}
+.entry-body.open{display:block;}
+.entry-section{margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border);}
+.entry-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.entry-sec-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--laranja);text-transform:uppercase;margin-bottom:10px;}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:1px;padding:3px 8px;border:1px solid var(--border2);color:var(--branco3);text-transform:uppercase;}
+.tag.g{border-color:rgba(46,204,113,.4);color:var(--verde);background:rgba(46,204,113,.08);}
+.tag.r{border-color:rgba(231,76,60,.4);color:var(--vermelho);background:rgba(231,76,60,.08);}
+.tag.a{border-color:rgba(245,196,0,.4);color:var(--amarelo);background:rgba(245,196,0,.08);}
+.tag.b{border-color:rgba(52,152,219,.4);color:var(--azul);background:rgba(52,152,219,.08);}
+.tag.o{border-color:rgba(245,90,0,.4);color:var(--laranja);background:rgba(245,90,0,.08);}
+.dyn-row{display:grid;gap:8px;align-items:end;margin-bottom:8px;}
+.dyn-input{background:var(--bg3);border:1px solid var(--border2);color:var(--branco);font-family:'Barlow Condensed',sans-serif;font-size:.9rem;padding:7px 10px;outline:none;}
+.dyn-input:focus{border-color:var(--laranja);}
+.dyn-sel{background:var(--bg3);border:1px solid var(--border2);color:var(--branco);font-family:'Barlow Condensed',sans-serif;font-size:.9rem;padding:7px 10px;outline:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--branco3);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.data-table td{padding:10px 12px;font-size:.85rem;border-bottom:1px solid var(--border);color:var(--branco2);}
+.data-table tr:hover td{background:var(--bg2);color:var(--branco);}
+.sec-block{background:var(--bg2);border:1px solid var(--border);margin-bottom:16px;}
+.sec-block-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);}
+.sec-block-title{font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+.sec-block-body{padding:20px;}
+.avanco-item{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.avanco-nome{flex:1;font-size:.9rem;font-weight:600;}
+.avanco-bar{flex:2;}
+.avanco-pct{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--laranja);width:40px;text-align:right;}
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:200;align-items:center;justify-content:center;}
+#modal-overlay.open{display:flex;}
+#modal{background:var(--bg2);border:1px solid var(--border2);width:100%;max-width:700px;max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;}
+.modal-close{background:transparent;border:none;color:var(--branco3);font-size:1.2rem;cursor:pointer;padding:4px 8px;}
+.modal-close:hover{color:var(--vermelho);}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg2);}
+.msec{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.msec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.msec-title{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--laranja);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.msec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.empty-state{text-align:center;padding:48px 24px;color:var(--branco3);font-family:'JetBrains Mono',monospace;font-size:.75rem;letter-spacing:1px;}
+.empty-state .ei{font-size:2.5rem;margin-bottom:12px;opacity:.3;display:block;}
+.alerta{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-left:3px solid var(--vermelho);background:rgba(231,76,60,.07);margin-bottom:10px;font-size:.85rem;flex-direction:column;}
+.alerta.am{border-left-color:var(--amarelo);background:rgba(245,196,0,.07);}
+.alerta.vd{border-left-color:var(--verde);background:rgba(46,204,113,.07);}
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:90vw;max-height:80vh;object-fit:contain;}
+#lb-cap{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--branco2);}
+#lb-close{position:absolute;top:20px;right:24px;background:transparent;border:none;color:var(--branco2);font-size:1.5rem;cursor:pointer;}
+input[type=range]{accent-color:var(--laranja);width:100%;}
+.divider{height:1px;background:var(--border);margin:20px 0;}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <div class="topbar-logo">OBR<span>A</span></div>
+  <div class="topbar-date" id="topbar-date"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn-sm primary" onclick="openModal('obra')">+ Nova Obra</button>
+  </div>
+</div>
+<div id="app">
+<div id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Painel</div>
+    <div class="sidebar-item active" id="nav-dash" onclick="showView('dashboard')"><span class="icon">▦</span>Dashboard</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Obras</div>
+    <div id="sidebar-obras"></div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Sistema</div>
+    <div class="sidebar-item" onclick="exportar()"><span class="icon">↓</span>Exportar dados</div>
+  </div>
+</div>
+<div id="main">
+
+<!-- DASHBOARD -->
+<div class="view active" id="view-dashboard">
+  <div class="page-header">
+    <div class="page-title"><small>// Visão Geral</small>Dashboard</div>
+    <div class="page-actions"><button class="btn-sm primary" onclick="openModal('obra')">+ Nova Obra</button></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-box-val" id="st-total">0</div><div class="stat-box-key">Obras</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="st-ativas">0</div><div class="stat-box-key">Ativas</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="st-reg">0</div><div class="stat-box-key">Registros</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="st-oc">0</div><div class="stat-box-key">Ocorrências Abertas</div></div>
+  </div>
+  <div class="cards-grid" id="obras-grid"></div>
+</div>
+
+<!-- OBRA -->
+<div class="view" id="view-obra">
+  <div class="page-header">
+    <div class="page-title"><small id="obra-tipo-label">// Obra</small><span id="obra-nome-h">—</span></div>
+    <div class="page-actions">
+      <button class="btn-sm" onclick="showView('dashboard')">← Voltar</button>
+      <button class="btn-sm" onclick="editObra()">Editar</button>
+      <button class="btn-sm primary" onclick="openModal('diario')">+ Registro Diário</button>
+    </div>
+  </div>
+  <div class="detail-tabs">
+    <button class="tab-btn active" onclick="showTab('diario')">📋 Diário</button>
+    <button class="tab-btn" onclick="showTab('avanco')">📊 Avanço</button>
+    <button class="tab-btn" onclick="showTab('equipe')">👷 Equipe</button>
+    <button class="tab-btn" onclick="showTab('materiais')">🧱 Materiais</button>
+    <button class="tab-btn" onclick="showTab('ocorrencias')">⚠️ Ocorrências</button>
+    <button class="tab-btn" onclick="showTab('info')">📁 Dados</button>
+  </div>
+  <div class="tab-content active" id="tab-diario">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px"><button class="btn-sm primary" onclick="openModal('diario')">+ Novo Registro</button></div>
+    <div id="diario-list"></div>
+  </div>
+  <div class="tab-content" id="tab-avanco">
+    <div class="sec-block"><div class="sec-block-hdr"><div class="sec-block-title">Avanço por Etapa</div><button class="btn-sm primary" onclick="openModal('etapa')">+ Etapa</button></div><div class="sec-block-body" id="avanco-list"></div></div>
+  </div>
+  <div class="tab-content" id="tab-equipe">
+    <div class="sec-block"><div class="sec-block-hdr"><div class="sec-block-title">Equipe da Obra</div><button class="btn-sm primary" onclick="openModal('trab')">+ Trabalhador</button></div>
+    <div class="sec-block-body"><table class="data-table"><thead><tr><th>Nome</th><th>Função</th><th>Empreiteira</th><th>Status</th></tr></thead><tbody id="equipe-tbody"></tbody></table></div></div>
+  </div>
+  <div class="tab-content" id="tab-materiais">
+    <div class="sec-block"><div class="sec-block-hdr"><div class="sec-block-title">Recebimento de Materiais</div><button class="btn-sm primary" onclick="openModal('material')">+ Material</button></div>
+    <div class="sec-block-body"><table class="data-table"><thead><tr><th>Data</th><th>Material</th><th>Qtd</th><th>Fornecedor</th><th>NF</th><th>Ensaio</th><th>Status</th></tr></thead><tbody id="mat-tbody"></tbody></table></div></div>
+  </div>
+  <div class="tab-content" id="tab-ocorrencias">
+    <div class="sec-block"><div class="sec-block-hdr"><div class="sec-block-title">Ocorrências</div><button class="btn-sm primary" onclick="openModal('ocorrencia')">+ Ocorrência</button></div><div class="sec-block-body" id="oc-list"></div></div>
+  </div>
+  <div class="tab-content" id="tab-info">
+    <div class="sec-block"><div class="sec-block-hdr"><div class="sec-block-title">Dados da Obra</div><button class="btn-sm" onclick="editObra()">Editar</button></div><div class="sec-block-body" id="info-body"></div></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-title">—</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox"><button id="lb-close" onclick="closeLB()">✕</button><img id="lb-img" src="" alt=""><div id="lb-cap"></div></div>
+
+<script>
+// ===== STATE =====
+let S={obras:[],cur:null,editing:null};
+function load(){try{const s=localStorage.getItem('obra_v3');if(s)S=JSON.parse(s);}catch(e){}}
+function save(){localStorage.setItem('obra_v3',JSON.stringify(S));}
+load();
+
+// ===== UTILS =====
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function today(){return new Date().toISOString().slice(0,10);}
+function fd(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;}
+document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+
+// ===== CHECKLIST ITEMS =====
+const CL=['EPI\'s disponíveis e íntegros','Capacetes em uso','Botas de segurança','Cinto de segurança (altura)','Andaimes com guarda-corpo','Proteção de aberturas no piso','Sinalização do canteiro','Extintores verificados','DDS realizado','Primeiros socorros acessíveis','Ordem e limpeza do canteiro','Instalações elétricas seguras'];
+
+// ===== NAV =====
+function showView(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  if(v==='dashboard'){document.getElementById('nav-dash').classList.add('active');renderDash();}
+}
+function goObra(id){
+  S.cur=id;const o=S.obras.find(x=>x.id===id);if(!o)return;
+  document.getElementById('obra-nome-h').textContent=o.nome;
+  document.getElementById('obra-tipo-label').textContent=`// ${o.tipo||'Obra'}`;
+  showView('obra');
+  document.querySelectorAll('.sidebar-item[data-obra]').forEach(x=>x.classList.remove('active'));
+  document.querySelector(`.sidebar-item[data-obra="${id}"]`)?.classList.add('active');
+  showTab('diario');
+}
+function showTab(tab){
+  document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes(`'${tab}'`))b.classList.add('active');});
+  renderTab(tab);
+}
+function renderTab(tab){
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+  ({diario:()=>renderDiario(o),avanco:()=>renderAvanco(o),equipe:()=>renderEquipe(o),materiais:()=>renderMats(o),ocorrencias:()=>renderOcs(o),info:()=>renderInfo(o)})[tab]?.();
+}
+
+// ===== DASHBOARD =====
+function renderDash(){
+  const obras=S.obras;
+  document.getElementById('st-total').textContent=obras.length;
+  document.getElementById('st-ativas').textContent=obras.filter(o=>o.status==='ativa').length;
+  document.getElementById('st-reg').textContent=obras.reduce((a,o)=>a+(o.diario?.length||0),0);
+  document.getElementById('st-oc').textContent=obras.reduce((a,o)=>a+(o.ocorrencias||[]).filter(x=>!x.resolvida).length,0);
+  const g=document.getElementById('obras-grid');
+  if(!obras.length){g.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span class="ei">🏗️</span>Nenhuma obra cadastrada.</div>`;return;}
+  g.innerHTML=obras.map(o=>{
+    const pct=o.avanco?.length?Math.round(o.avanco.reduce((a,e)=>a+e.pct,0)/o.avanco.length):0;
+    const ult=o.diario?.slice(-1)[0];
+    return `<div class="obra-card" onclick="goObra('${o.id}')">
+      <div class="obra-card-header"><div><div class="obra-card-nome">${o.nome}</div><div class="obra-meta" style="margin-top:4px">${o.tipo||'—'} · ${o.local||'—'}</div></div><div class="status-dot ${o.status||'ativa'}"></div></div>
+      <div class="progress-wrap"><div class="progress-label"><span>Avanço Físico</span><strong>${pct}%</strong></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+      <div class="obra-footer">
+        <div class="obra-stat"><span class="obra-stat-val">${o.diario?.length||0}</span><span class="obra-stat-key">Registros</span></div>
+        <div class="obra-stat"><span class="obra-stat-val">${o.equipe?.length||0}</span><span class="obra-stat-key">Trabalhadores</span></div>
+        <div class="obra-stat"><span class="obra-stat-val">${ult?fd(ult.data):'—'}</span><span class="obra-stat-key">Último diário</span></div>
+      </div></div>`;
+  }).join('');
+}
+function renderSidebar(){
+  const c=document.getElementById('sidebar-obras');
+  if(!S.obras.length){c.innerHTML=`<div style="padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3)">Nenhuma obra</div>`;return;}
+  c.innerHTML=S.obras.map(o=>{
+    const ab=(o.ocorrencias||[]).filter(x=>!x.resolvida).length;
+    return `<div class="sidebar-item" data-obra="${o.id}" onclick="goObra('${o.id}')"><span class="icon">▸</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.nome}</span>${ab?`<span class="obra-badge alert">${ab}</span>`:''}</div>`;
+  }).join('');
+}
+
+// ===== DIÁRIO RENDER =====
+function renderDiario(o){
+  const el=document.getElementById('diario-list');
+  const d=(o.diario||[]).slice().reverse();
+  if(!d.length){el.innerHTML=`<div class="empty-state"><span class="ei">📋</span>Nenhum registro.<br>Clique em "+ Novo Registro".</div>`;return;}
+  el.innerHTML=d.map(r=>{
+    const fotos=r.fotos||[];
+    const clOk=(r.checklist||[]).filter(x=>x==='ok').length;
+    const clTot=(r.checklist||[]).length;
+    const prods=r.producao||[];
+    const eqHoje=r.equipeHoje||[];
+    const mHoje=r.matsHoje||[];
+    const equips=r.equipamentos||[];
+    return `<div class="entry-card">
+      <div class="entry-header" onclick="toggleEntry('${r.id}')">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px">Diário Nº ${r.num} — ${fd(r.data)}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);margin-top:3px">RT: ${r.rt||'—'} · ${r.clima||'—'} · ${r.temp||'—'}°C · ${r.mdo||0} trabalhadores · ${r.horaInicio||'—'} → ${r.horaFim||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          ${r.assinado?'<span class="tag g">✓ Assinado</span>':'<span class="tag a">Pendente</span>'}
+          ${fotos.length?`<span class="tag b">📷 ${fotos.length}</span>`:''}
+          ${clTot?`<span class="tag ${clOk===clTot?'g':'r'}">${clOk}/${clTot} seg</span>`:''}
+          ${prods.length?`<span class="tag o">📊 Produção</span>`:''}
+          <span style="color:var(--branco3)" id="arr-${r.id}">▸</span>
+        </div>
+      </div>
+      <div class="entry-body" id="body-${r.id}">
+
+        ${r.atividades?`<div class="entry-section"><div class="entry-sec-title">Serviços Executados</div><div style="font-size:.9rem;color:var(--branco2);line-height:1.7;white-space:pre-line">${r.atividades}</div></div>`:''}
+
+        ${prods.length?`<div class="entry-section"><div class="entry-sec-title">Produtividade — Meta vs Realizado</div>
+          <table class="data-table"><thead><tr><th>Serviço</th><th>Unid</th><th>Meta</th><th>Realizado</th><th>%</th></tr></thead><tbody>
+          ${prods.map(p=>{const pc=p.meta>0?Math.round(p.real/p.meta*100):0;return`<tr><td style="font-weight:600;color:var(--branco)">${p.servico}</td><td>${p.unid}</td><td style="font-family:'JetBrains Mono',monospace">${p.meta}</td><td style="font-family:'JetBrains Mono',monospace">${p.real}</td><td style="font-family:'JetBrains Mono',monospace;color:${pc>=100?'var(--verde)':pc>=80?'var(--amarelo)':'var(--vermelho)'}">${pc}%</td></tr>`;}).join('')}
+          </tbody></table></div>`:''}
+
+        ${eqHoje.length?`<div class="entry-section"><div class="entry-sec-title">Mão de Obra Presente</div>
+          <table class="data-table"><thead><tr><th>Função</th><th>Qtd</th><th>Empreiteira</th></tr></thead><tbody>
+          ${eqHoje.map(e=>`<tr><td style="font-weight:600;color:var(--branco)">${e.funcao}</td><td style="font-family:'JetBrains Mono',monospace">${e.qtd}</td><td>${e.emp||'—'}</td></tr>`).join('')}
+          </tbody></table></div>`:''}
+
+        ${mHoje.length?`<div class="entry-section"><div class="entry-sec-title">Materiais Recebidos Hoje</div>
+          <table class="data-table"><thead><tr><th>Material</th><th>Qtd</th><th>NF</th><th>Conformidade</th></tr></thead><tbody>
+          ${mHoje.map(m=>`<tr><td style="font-weight:600;color:var(--branco)">${m.nome}</td><td>${m.qtd} ${m.unid||''}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${m.nf||'—'}</td><td><span class="tag ${m.ok?'g':'r'}">${m.ok?'Conforme':'Não conf.'}</span></td></tr>`).join('')}
+          </tbody></table></div>`:''}
+
+        ${equips.length?`<div class="entry-section"><div class="entry-sec-title">Equipamentos</div>
+          <table class="data-table"><thead><tr><th>Equipamento</th><th>Status</th><th>Observação</th></tr></thead><tbody>
+          ${equips.map(e=>`<tr><td style="font-weight:600;color:var(--branco)">${e.nome}</td><td><span class="tag ${e.st==='operando'?'g':e.st==='manutenção'?'a':'r'}">${e.st}</span></td><td style="font-size:.8rem;color:var(--branco3)">${e.obs||'—'}</td></tr>`).join('')}
+          </tbody></table></div>`:''}
+
+        ${clTot?`<div class="entry-section"><div class="entry-sec-title">Checklist de Segurança</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          ${CL.map((item,i)=>{const st=r.checklist[i];return`<div class="check-item ${st==='ok'?'ok':st==='nok'?'nok':''}"><div class="check-box">${st==='ok'?'✓':st==='nok'?'✕':''}</div>${item}</div>`;}).join('')}
+          </div></div>`:''}
+
+        ${r.pendencias?`<div class="entry-section"><div class="entry-sec-title">Pendências / Interferências</div><div style="font-size:.9rem;color:var(--branco2);white-space:pre-line;line-height:1.7">${r.pendencias}</div></div>`:''}
+        ${r.comunicados?`<div class="entry-section"><div class="entry-sec-title">Comunicados Emitidos</div><div style="font-size:.9rem;color:var(--branco2);white-space:pre-line;line-height:1.7">${r.comunicados}</div></div>`:''}
+        ${r.visitas?`<div class="entry-section"><div class="entry-sec-title">Visitas / Fiscalização</div><div style="font-size:.9rem;color:var(--branco2);line-height:1.7">${r.visitas}</div></div>`:''}
+        ${r.ensaios?`<div class="entry-section"><div class="entry-sec-title">Ensaios Realizados</div><div style="font-size:.9rem;color:var(--verde)">${r.ensaios}</div></div>`:''}
+        ${r.obs?`<div class="entry-section"><div class="entry-sec-title">Observações Gerais</div><div style="font-size:.9rem;color:var(--branco2);white-space:pre-line;line-height:1.7">${r.obs}</div></div>`:''}
+
+        ${fotos.length?`<div class="entry-section"><div class="entry-sec-title">Registro Fotográfico (${fotos.length} fotos)</div>
+          <div class="fotos-grid">
+          ${fotos.map(f=>`<div class="foto-thumb" onclick="openLB('${f.data}','${(f.leg||'').replace(/'/g,'&#39;')}')"><img src="${f.data}"><div class="foto-leg-input"><span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco2)">${f.leg||'Sem legenda'}</span></div></div>`).join('')}
+          </div></div>`:''}
+
+      </div></div>`;
+  }).join('');
+}
+function toggleEntry(id){
+  const b=document.getElementById('body-'+id),a=document.getElementById('arr-'+id);
+  const open=b.classList.toggle('open');a.textContent=open?'▾':'▸';
+}
+
+// ===== OUTROS RENDERS =====
+function renderAvanco(o){
+  const el=document.getElementById('avanco-list'),e=o.avanco||[];
+  if(!e.length){el.innerHTML=`<div class="empty-state"><span class="ei">📊</span>Nenhuma etapa.</div>`;return;}
+  el.innerHTML=e.map(x=>`<div class="avanco-item"><div class="avanco-nome">${x.nome}</div><div class="avanco-bar">${x.inicio?`<div style="font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--branco3);margin-bottom:4px">${fd(x.inicio)} → ${fd(x.fim)}</div>`:''}<div class="progress-track" style="height:6px"><div class="progress-fill" style="width:${x.pct}%"></div></div></div><div class="avanco-pct">${x.pct}%</div><button class="btn-sm" onclick="editEtapa('${x.id}')">▸</button></div>`).join('');
+}
+function renderEquipe(o){
+  const tb=document.getElementById('equipe-tbody'),e=o.equipe||[];
+  if(!e.length){tb.innerHTML=`<tr><td colspan="4" style="text-align:center;color:var(--branco3);font-family:'JetBrains Mono',monospace;font-size:.65rem;padding:32px">Nenhum trabalhador</td></tr>`;return;}
+  tb.innerHTML=e.map(t=>`<tr><td style="color:var(--branco);font-weight:600">${t.nome}</td><td>${t.funcao||'—'}</td><td>${t.emp||'—'}</td><td><span class="tag ${t.ativo?'g':''}">${t.ativo?'Ativo':'Inativo'}</span></td></tr>`).join('');
+}
+function renderMats(o){
+  const tb=document.getElementById('mat-tbody'),m=o.materiais||[];
+  if(!m.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--branco3);font-family:'JetBrains Mono',monospace;font-size:.65rem;padding:32px">Nenhum material</td></tr>`;return;}
+  tb.innerHTML=m.map(x=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:.7rem">${fd(x.data)}</td><td style="color:var(--branco);font-weight:600">${x.nome}</td><td>${x.qtd} ${x.unidade||''}</td><td>${x.fornecedor||'—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${x.nf||'—'}</td><td>${x.ensaio?'<span class="tag g">Sim</span>':'—'}</td><td><span class="tag ${x.conforme?'g':'r'}">${x.conforme?'Conforme':'Não conf.'}</span></td></tr>`).join('');
+}
+function renderOcs(o){
+  const el=document.getElementById('oc-list'),ocs=(o.ocorrencias||[]).slice().reverse();
+  if(!ocs.length){el.innerHTML=`<div class="empty-state"><span class="ei">⚠️</span>Nenhuma ocorrência.</div>`;return;}
+  el.innerHTML=ocs.map(oc=>`<div class="alerta ${oc.tipo==='near-miss'?'am':oc.tipo==='cliente'?'vd':''}"><div style="display:flex;justify-content:space-between;align-items:center;width:100%"><div style="font-weight:800;font-size:.9rem">${oc.titulo}</div><div style="display:flex;gap:6px"><span class="tag">${oc.tipo||'Geral'}</span>${oc.resolvida?'<span class="tag g">Resolvida</span>':'<span class="tag a">Aberta</span>'}</div></div><div style="font-size:.85rem;color:var(--branco2)">${oc.descricao||''}</div><div style="display:flex;gap:16px"><span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3)">${fd(oc.data)}</span>${oc.providencia?`<span style="font-size:.75rem;color:var(--verde)">↳ ${oc.providencia}</span>`:''}</div></div>`).join('');
+}
+function renderInfo(o){
+  document.getElementById('info-body').innerHTML=`<div class="form-grid">
+    ${ir('Nome',o.nome)}${ir('Tipo',o.tipo)}${ir('Status',o.status)}${ir('Localização',o.local)}
+    ${ir('Cliente',o.cliente)}${ir('Resp. Técnico',o.rt)}${ir('CREA/CAU',o.crea)}${ir('Área',o.area?o.area+' m²':'—')}
+    ${ir('Início',fd(o.inicio))}${ir('Fim Previsto',fd(o.fim))}${ir('Contrato',o.contrato)}${ir('Valor',o.valor?'R$ '+Number(o.valor).toLocaleString('pt-BR'):'—')}
+  </div>${o.obs?`<div class="divider"></div><div style="font-size:.9rem;color:var(--branco2);line-height:1.7">${o.obs}</div>`:''}`;}
+function ir(k,v){return`<div class="field"><label>${k}</label><div style="font-size:.95rem;font-weight:600;color:var(--branco);padding:8px 0;border-bottom:1px solid var(--border)">${v||'—'}</div></div>`;}
+
+// ===== LIGHTBOX =====
+function openLB(src,cap){document.getElementById('lb-img').src=src;document.getElementById('lb-cap').textContent=cap;document.getElementById('lightbox').classList.add('open');}
+function closeLB(){document.getElementById('lightbox').classList.remove('open');}
+document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLB();});
+
+// ===== MODAL =====
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');S.editing=null;}
+document.getElementById('modal-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// Temp state para diário
+let tProd=[],tEqH=[],tMatH=[],tEquip=[],tCL=[],tFotos=[];
+
+function dInput(ph){return`<input class="dyn-input" placeholder="${ph}">`;}
+function dSel(opts){return`<select class="dyn-sel">${opts.map(o=>`<option value="${o.v||o}">${o.l||o}</option>`).join('')}</select>`;}
+
+function openModal(type){
+  document.getElementById('modal-overlay').classList.add('open');
+  const o=S.obras.find(x=>x.id===S.cur);
+
+  if(type==='obra'){
+    const ed=S.editing;
+    document.getElementById('modal-title').textContent=ed?'Editar Obra':'Nova Obra';
+    document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+      <div class="field form-full"><label>Nome da Obra *</label><input id="f-nome" value="${ed?.nome||''}" placeholder="Ex: Edifício Vila Nova"></div>
+      <div class="field"><label>Tipo</label><select id="f-tipo">${['Residencial','Comercial','Industrial','Infraestrutura','Reforma','Outro'].map(t=>`<option ${(ed?.tipo||'')==t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="field"><label>Status</label><select id="f-status"><option value="ativa" ${(ed?.status||'ativa')==='ativa'?'selected':''}>Ativa</option><option value="pausada" ${ed?.status==='pausada'?'selected':''}>Pausada</option><option value="concluida" ${ed?.status==='concluida'?'selected':''}>Concluída</option></select></div>
+      <div class="field form-full"><label>Localização</label><input id="f-local" value="${ed?.local||''}" placeholder="Endereço completo"></div>
+      <div class="field"><label>Cliente / Proprietário</label><input id="f-cliente" value="${ed?.cliente||''}"></div>
+      <div class="field"><label>Responsável Técnico</label><input id="f-rt" value="${ed?.rt||''}"></div>
+      <div class="field"><label>CREA / CAU</label><input id="f-crea" value="${ed?.crea||''}"></div>
+      <div class="field"><label>Área Total (m²)</label><input id="f-area" type="number" value="${ed?.area||''}"></div>
+      <div class="field"><label>Início Previsto</label><input id="f-inicio" type="date" value="${ed?.inicio||''}"></div>
+      <div class="field"><label>Fim Previsto</label><input id="f-fim" type="date" value="${ed?.fim||''}"></div>
+      <div class="field"><label>Nº Contrato</label><input id="f-contrato" value="${ed?.contrato||''}"></div>
+      <div class="field"><label>Valor (R$)</label><input id="f-valor" type="number" value="${ed?.valor||''}"></div>
+      <div class="field form-full"><label>Observações</label><textarea id="f-obs">${ed?.obs||''}</textarea></div>
+    </div>`;
+    document.getElementById('modal-footer').innerHTML=`${ed?`<button class="btn-sm danger" onclick="delObra('${ed.id}')">Excluir</button>`:''}<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveObra()">Salvar</button>`;
+    return;
+  }
+
+  if(type==='diario'){
+    const num=(o?.diario?.length||0)+1;
+    tProd=[];tEqH=[];tMatH=[];tEquip=[];tFotos=[];
+    tCL=new Array(CL.length).fill('');
+    document.getElementById('modal-title').textContent=`Registro Diário Nº ${num}`;
+    document.getElementById('modal-body').innerHTML=`
+<div class="msec">
+  <div class="msec-title">Identificação do Dia</div>
+  <div class="form-grid">
+    <div class="field"><label>Data *</label><input id="d-data" type="date" value="${today()}"></div>
+    <div class="field"><label>Nº do Diário</label><input id="d-num" type="number" value="${num}"></div>
+    <div class="field"><label>Hora Início</label><input id="d-hi" type="time" value="07:00"></div>
+    <div class="field"><label>Hora Fim</label><input id="d-hf" type="time" value="17:00"></div>
+    <div class="field"><label>Responsável Técnico</label><input id="d-rt" value="${o?.rt||''}"></div>
+    <div class="field"><label>Total MdO no canteiro</label><input id="d-mdo" type="number" placeholder="0"></div>
+    <div class="field"><label>Condição Climática</label><select id="d-clima">${['☀️ Sol','⛅ Parcialmente nublado','☁️ Nublado','🌧️ Chuva leve','⛈️ Chuva forte','🌫️ Neblina'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+    <div class="field"><label>Temperatura (°C)</label><input id="d-temp" type="number" placeholder="25"></div>
+    <div class="field"><label>Assinado pelo RT?</label><select id="d-ass"><option value="">Não</option><option value="sim">Sim</option></select></div>
+  </div>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Serviços Executados</div>
+  <div class="field"><label>Descrição das Atividades *</label><textarea id="d-atv" style="min-height:90px" placeholder="Descreva os serviços executados, localização, frentes de serviço, observações técnicas..."></textarea></div>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Produtividade — Meta vs Realizado</div>
+  <div id="prod-ui"></div>
+  <button class="btn-sm" style="margin-top:8px" onclick="addProd()">+ Adicionar Serviço</button>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Mão de Obra por Função</div>
+  <div id="eqh-ui"></div>
+  <button class="btn-sm" style="margin-top:8px" onclick="addEqH()">+ Adicionar Função</button>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Materiais Recebidos Hoje</div>
+  <div id="math-ui"></div>
+  <button class="btn-sm" style="margin-top:8px" onclick="addMatH()">+ Adicionar Material</button>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Equipamentos</div>
+  <div id="equip-ui"></div>
+  <button class="btn-sm" style="margin-top:8px" onclick="addEquip()">+ Adicionar Equipamento</button>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Checklist de Segurança</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--branco3);margin-bottom:10px">Clique uma vez = OK · Duas vezes = Não OK · Três vezes = Limpar</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="cl-ui">
+    ${CL.map((item,i)=>`<div class="check-item" id="ci-${i}" onclick="toggleCL(${i})"><div class="check-box" id="cb-${i}"></div>${item}</div>`).join('')}
+  </div>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Registro Fotográfico</div>
+  <div class="fotos-grid" id="fotos-ui">
+    <label class="foto-add-box">
+      <input type="file" accept="image/*" multiple style="display:none" onchange="addFotos(this)">
+      <span style="font-size:1.8rem">📷</span>
+      <span>Adicionar Fotos</span>
+      <span style="font-size:.55rem;opacity:.5">JPG, PNG, etc.</span>
+    </label>
+  </div>
+</div>
+
+<div class="msec">
+  <div class="msec-title">Informações Complementares</div>
+  <div class="form-grid">
+    <div class="field form-full"><label>Pendências / Interferências</label><textarea id="d-pend" placeholder="Problemas, solicitações pendentes, interferências externas, bloqueios..."></textarea></div>
+    <div class="field form-full"><label>Comunicados Emitidos</label><textarea id="d-com" placeholder="E-mails, RDOs, ofícios, atas enviadas hoje..."></textarea></div>
+    <div class="field form-full"><label>Visitas / Fiscalização</label><textarea id="d-vis" placeholder="Nome, cargo, empresa e motivo da visita..."></textarea></div>
+    <div class="field form-full"><label>Ensaios Realizados</label><input id="d-ens" placeholder="Ex: Slump test 10cm — Conforme NBR 7212, CP coletado para 7 e 28 dias"></div>
+    <div class="field form-full"><label>Observações Gerais</label><textarea id="d-obs"></textarea></div>
+  </div>
+</div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveDiario()">Salvar Registro</button>`;
+    return;
+  }
+
+  if(type==='etapa'){
+    document.getElementById('modal-title').textContent='Nova Etapa';
+    document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+      <div class="field form-full"><label>Nome da Etapa *</label><input id="e-nome" placeholder="Ex: Estrutura — Laje 5º Pavimento"></div>
+      <div class="field"><label>Início Previsto</label><input id="e-ini" type="date"></div>
+      <div class="field"><label>Fim Previsto</label><input id="e-fim" type="date"></div>
+      <div class="field form-full"><label>% Concluído: <span id="e-pct-lbl">0%</span></label>
+        <input id="e-pct" type="range" min="0" max="100" value="0" oninput="document.getElementById('e-pct-lbl').textContent=this.value+'%'" style="margin-top:8px">
+      </div></div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveEtapa()">Salvar</button>`;
+    return;
+  }
+
+  if(type==='trab'){
+    document.getElementById('modal-title').textContent='Novo Trabalhador';
+    document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+      <div class="field form-full"><label>Nome Completo *</label><input id="t-nome"></div>
+      <div class="field"><label>Função / Cargo</label><input id="t-func" placeholder="Pedreiro, Armador, Eletricista..."></div>
+      <div class="field"><label>Empreiteira</label><input id="t-emp"></div>
+      <div class="field"><label>Status</label><select id="t-ativo"><option value="1">Ativo</option><option value="">Inativo</option></select></div>
+    </div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveTrab()">Salvar</button>`;
+    return;
+  }
+
+  if(type==='material'){
+    document.getElementById('modal-title').textContent='Registro de Material';
+    document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+      <div class="field form-full"><label>Material *</label><input id="m-nome" placeholder="Ex: Concreto usinado fck 30MPa"></div>
+      <div class="field"><label>Data</label><input id="m-data" type="date" value="${today()}"></div>
+      <div class="field"><label>Quantidade</label><input id="m-qtd" type="number"></div>
+      <div class="field"><label>Unidade</label><input id="m-und" placeholder="m³, kg, un, m²..."></div>
+      <div class="field"><label>Fornecedor</label><input id="m-forn"></div>
+      <div class="field"><label>Nº Nota Fiscal</label><input id="m-nf"></div>
+      <div class="field"><label>Lote / Rastreabilidade</label><input id="m-lote"></div>
+      <div class="field"><label>Ensaio Realizado?</label><select id="m-ens"><option value="">Não</option><option value="1">Sim</option></select></div>
+      <div class="field form-full"><label>Resultado do Ensaio</label><input id="m-ens-r" placeholder="Ex: Slump 10cm — Conforme NBR"></div>
+      <div class="field"><label>Conformidade</label><select id="m-conf"><option value="1">Conforme</option><option value="">Não conforme</option></select></div>
+      <div class="field form-full"><label>Observações</label><textarea id="m-obs"></textarea></div>
+    </div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveMat()">Salvar</button>`;
+    return;
+  }
+
+  if(type==='ocorrencia'){
+    document.getElementById('modal-title').textContent='Nova Ocorrência';
+    document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+      <div class="field form-full"><label>Título *</label><input id="oc-t"></div>
+      <div class="field"><label>Data</label><input id="oc-d" type="date" value="${today()}"></div>
+      <div class="field"><label>Tipo</label><select id="oc-tp"><option value="segurança">Segurança</option><option value="near-miss">Near Miss</option><option value="qualidade">Qualidade</option><option value="cliente">Cliente / Contrato</option><option value="outro">Outro</option></select></div>
+      <div class="field form-full"><label>Descrição Detalhada</label><textarea id="oc-desc" style="min-height:80px"></textarea></div>
+      <div class="field form-full"><label>Providências / Ação Corretiva</label><textarea id="oc-prov"></textarea></div>
+      <div class="field"><label>Status</label><select id="oc-res"><option value="">Aberta</option><option value="1">Resolvida</option></select></div>
+    </div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="saveOc()">Salvar</button>`;
+    return;
+  }
+}
+
+// ===== DINÂMICOS DIÁRIO =====
+function addProd(){
+  const d=document.createElement('div');
+  d.className='dyn-row';d.style.gridTemplateColumns='1fr 90px 90px 70px 28px';
+  const id=uid();d.id='pd'+id;
+  d.innerHTML=`${dInput('Serviço / Atividade')}${dInput('Meta')}${dInput('Realizado')}${dInput('Unid')}<button onclick="document.getElementById('pd${id}').remove()" style="background:transparent;border:none;color:var(--vermelho);cursor:pointer;font-size:.9rem">✕</button>`;
+  document.getElementById('prod-ui').appendChild(d);
+}
+function addEqH(){
+  const d=document.createElement('div');
+  d.className='dyn-row';d.style.gridTemplateColumns='1fr 70px 1fr 28px';
+  const id=uid();d.id='eh'+id;
+  d.innerHTML=`${dInput('Função / Cargo')}${dInput('Qtd')}${dInput('Empreiteira')}<button onclick="document.getElementById('eh${id}').remove()" style="background:transparent;border:none;color:var(--vermelho);cursor:pointer;font-size:.9rem">✕</button>`;
+  document.getElementById('eqh-ui').appendChild(d);
+}
+function addMatH(){
+  const d=document.createElement('div');
+  d.className='dyn-row';d.style.gridTemplateColumns='1fr 70px 55px 90px auto 28px';
+  const id=uid();d.id='mh'+id;
+  d.innerHTML=`${dInput('Material')}${dInput('Qtd')}${dInput('Unid')}${dInput('NF')}<select class="dyn-sel"><option value="1">Conforme</option><option value="">Não conf.</option></select><button onclick="document.getElementById('mh${id}').remove()" style="background:transparent;border:none;color:var(--vermelho);cursor:pointer;font-size:.9rem">✕</button>`;
+  document.getElementById('math-ui').appendChild(d);
+}
+function addEquip(){
+  const d=document.createElement('div');
+  d.className='dyn-row';d.style.gridTemplateColumns='1fr 150px 1fr 28px';
+  const id=uid();d.id='eq'+id;
+  d.innerHTML=`${dInput('Equipamento')}<select class="dyn-sel"><option value="operando">Operando</option><option value="manutenção">Em manutenção</option><option value="parado">Parado</option></select>${dInput('Observação')}<button onclick="document.getElementById('eq${id}').remove()" style="background:transparent;border:none;color:var(--vermelho);cursor:pointer;font-size:.9rem">✕</button>`;
+  document.getElementById('equip-ui').appendChild(d);
+}
+
+function toggleCL(i){
+  const el=document.getElementById('ci-'+i),cb=document.getElementById('cb-'+i);
+  if(tCL[i]===''){tCL[i]='ok';el.className='check-item ok';cb.textContent='✓';}
+  else if(tCL[i]==='ok'){tCL[i]='nok';el.className='check-item nok';cb.textContent='✕';}
+  else{tCL[i]='';el.className='check-item';cb.textContent='';}
+}
+
+function addFotos(input){
+  Array.from(input.files).forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const id='ft'+uid();
+      tFotos.push({id,data:e.target.result,leg:''});
+      const grid=document.getElementById('fotos-ui');
+      const add=grid.querySelector('.foto-add-box');
+      const t=document.createElement('div');
+      t.className='foto-thumb';t.id=id;
+      t.innerHTML=`<img src="${e.target.result}" onclick="openLB('${e.target.result}','')"><div class="foto-leg-input"><input type="text" placeholder="Legenda da foto..." onchange="updLeg('${id}',this.value)"></div><button class="foto-del" onclick="delFoto('${id}')">✕</button>`;
+      grid.insertBefore(t,add);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
+}
+function updLeg(id,v){const f=tFotos.find(x=>x.id===id);if(f)f.leg=v;}
+function delFoto(id){tFotos=tFotos.filter(x=>x.id!==id);document.getElementById(id)?.remove();}
+
+// ===== SAVES =====
+function saveObra(){
+  const nome=document.getElementById('f-nome').value.trim();
+  if(!nome)return alert('Nome da obra é obrigatório');
+  const ed=S.editing;
+  const dados={nome,tipo:document.getElementById('f-tipo').value,status:document.getElementById('f-status').value,local:document.getElementById('f-local').value,cliente:document.getElementById('f-cliente').value,rt:document.getElementById('f-rt').value,crea:document.getElementById('f-crea').value,area:document.getElementById('f-area').value,inicio:document.getElementById('f-inicio').value,fim:document.getElementById('f-fim').value,contrato:document.getElementById('f-contrato').value,valor:document.getElementById('f-valor').value,obs:document.getElementById('f-obs').value};
+  if(ed){const idx=S.obras.findIndex(x=>x.id===ed.id);S.obras[idx]={...ed,...dados};}
+  else S.obras.push({id:uid(),...dados,diario:[],avanco:[],equipe:[],materiais:[],ocorrencias:[]});
+  save();renderSidebar();renderDash();closeModal();
+  if(ed)renderTab('info');
+}
+function editObra(){const o=S.obras.find(x=>x.id===S.cur);if(!o)return;S.editing=o;openModal('obra');}
+function delObra(id){if(!confirm('Excluir esta obra e todos os dados?'))return;S.obras=S.obras.filter(x=>x.id!==id);save();renderSidebar();closeModal();showView('dashboard');}
+
+function saveDiario(){
+  const data=document.getElementById('d-data').value;
+  const atv=document.getElementById('d-atv').value.trim();
+  if(!data||!atv)return alert('Data e atividades são obrigatórios');
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+
+  const producao=[];
+  document.querySelectorAll('#prod-ui .dyn-row').forEach(row=>{
+    const ins=row.querySelectorAll('input');
+    if(ins[0]?.value)producao.push({servico:ins[0].value,meta:parseFloat(ins[1].value)||0,real:parseFloat(ins[2].value)||0,unid:ins[3].value});
+  });
+  const equipeHoje=[];
+  document.querySelectorAll('#eqh-ui .dyn-row').forEach(row=>{
+    const ins=row.querySelectorAll('input');
+    if(ins[0]?.value)equipeHoje.push({funcao:ins[0].value,qtd:parseInt(ins[1].value)||0,emp:ins[2].value});
+  });
+  const matsHoje=[];
+  document.querySelectorAll('#math-ui .dyn-row').forEach(row=>{
+    const ins=row.querySelectorAll('input');
+    const sel=row.querySelector('select');
+    if(ins[0]?.value)matsHoje.push({nome:ins[0].value,qtd:ins[1].value,unid:ins[2].value,nf:ins[3].value,ok:!!sel?.value});
+  });
+  const equipamentos=[];
+  document.querySelectorAll('#equip-ui .dyn-row').forEach(row=>{
+    const ins=row.querySelectorAll('input');
+    const sel=row.querySelector('select');
+    if(ins[0]?.value)equipamentos.push({nome:ins[0].value,st:sel?.value||'operando',obs:ins[1]?.value||''});
+  });
+
+  o.diario.push({
+    id:uid(),num:parseInt(document.getElementById('d-num').value)||o.diario.length+1,
+    data,atividades:atv,
+    horaInicio:document.getElementById('d-hi').value,horaFim:document.getElementById('d-hf').value,
+    rt:document.getElementById('d-rt').value,mdo:document.getElementById('d-mdo').value,
+    clima:document.getElementById('d-clima').value,temp:document.getElementById('d-temp').value,
+    assinado:document.getElementById('d-ass').value==='sim',
+    producao,equipeHoje,matsHoje,equipamentos,
+    checklist:[...tCL],
+    fotos:tFotos.map(f=>({data:f.data,leg:f.leg})),
+    pendencias:document.getElementById('d-pend').value,
+    comunicados:document.getElementById('d-com').value,
+    visitas:document.getElementById('d-vis').value,
+    ensaios:document.getElementById('d-ens').value,
+    obs:document.getElementById('d-obs').value,
+  });
+  save();closeModal();renderTab('diario');
+}
+
+function saveEtapa(){
+  const nome=document.getElementById('e-nome').value.trim();if(!nome)return alert('Nome obrigatório');
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+  o.avanco.push({id:uid(),nome,inicio:document.getElementById('e-ini').value,fim:document.getElementById('e-fim').value,pct:parseInt(document.getElementById('e-pct').value)||0});
+  save();closeModal();renderTab('avanco');
+}
+function editEtapa(id){
+  const o=S.obras.find(x=>x.id===S.cur),e=o?.avanco.find(x=>x.id===id);if(!e)return;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-title').textContent='Editar Etapa';
+  document.getElementById('modal-body').innerHTML=`<div class="form-grid">
+    <div class="field form-full"><label>Nome</label><input id="e-nome" value="${e.nome}"></div>
+    <div class="field"><label>Início</label><input id="e-ini" type="date" value="${e.inicio||''}"></div>
+    <div class="field"><label>Fim</label><input id="e-fim" type="date" value="${e.fim||''}"></div>
+    <div class="field form-full"><label>% Concluído: <span id="e-pct-lbl">${e.pct}%</span></label>
+      <input id="e-pct" type="range" min="0" max="100" value="${e.pct}" oninput="document.getElementById('e-pct-lbl').textContent=this.value+'%'" style="margin-top:8px">
+    </div></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn-sm danger" onclick="delEtapa('${id}')">Excluir</button><button class="btn-sm" onclick="closeModal()">Cancelar</button><button class="btn-sm primary" onclick="updEtapa('${id}')">Salvar</button>`;
+}
+function updEtapa(id){
+  const o=S.obras.find(x=>x.id===S.cur),e=o?.avanco.find(x=>x.id===id);if(!e)return;
+  e.nome=document.getElementById('e-nome').value;e.inicio=document.getElementById('e-ini').value;e.fim=document.getElementById('e-fim').value;e.pct=parseInt(document.getElementById('e-pct').value);
+  save();closeModal();renderTab('avanco');
+}
+function delEtapa(id){const o=S.obras.find(x=>x.id===S.cur);if(!o)return;o.avanco=o.avanco.filter(x=>x.id!==id);save();closeModal();renderTab('avanco');}
+
+function saveTrab(){
+  const nome=document.getElementById('t-nome').value.trim();if(!nome)return alert('Nome obrigatório');
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+  o.equipe.push({id:uid(),nome,funcao:document.getElementById('t-func').value,emp:document.getElementById('t-emp').value,ativo:!!document.getElementById('t-ativo').value});
+  save();closeModal();renderTab('equipe');
+}
+function saveMat(){
+  const nome=document.getElementById('m-nome').value.trim();if(!nome)return alert('Nome obrigatório');
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+  o.materiais.push({id:uid(),nome,data:document.getElementById('m-data').value,qtd:document.getElementById('m-qtd').value,unidade:document.getElementById('m-und').value,fornecedor:document.getElementById('m-forn').value,nf:document.getElementById('m-nf').value,lote:document.getElementById('m-lote').value,ensaio:!!document.getElementById('m-ens').value,ensaioRes:document.getElementById('m-ens-r').value,conforme:!!document.getElementById('m-conf').value,obs:document.getElementById('m-obs').value});
+  save();closeModal();renderTab('materiais');
+}
+function saveOc(){
+  const titulo=document.getElementById('oc-t').value.trim();if(!titulo)return alert('Título obrigatório');
+  const o=S.obras.find(x=>x.id===S.cur);if(!o)return;
+  o.ocorrencias.push({id:uid(),titulo,data:document.getElementById('oc-d').value,tipo:document.getElementById('oc-tp').value,descricao:document.getElementById('oc-desc').value,providencia:document.getElementById('oc-prov').value,resolvida:!!document.getElementById('oc-res').value});
+  save();closeModal();renderTab('ocorrencias');renderSidebar();
+}
+
+function exportar(){
+  const clone=JSON.parse(JSON.stringify(S));
+  clone.obras.forEach(o=>{o.diario?.forEach(d=>{d.fotos=d.fotos?.map(f=>({leg:f.leg,nota:'[imagem base64 omitida]'}));});});
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(clone,null,2)],{type:'application/json'}));a.download='obras_backup_'+today()+'.json';a.click();
+}
+
+renderSidebar();
+renderDash();
+</script>
+</body>
+</html>
